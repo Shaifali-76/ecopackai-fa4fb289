@@ -1,13 +1,16 @@
-import { Leaf, Target, Heart, Users, Award, TrendingUp } from "lucide-react";
+import { Leaf, Target, Heart, Award, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import logoEcoWrap from "@/assets/logo-eco-wrap-systems.png";
+import logoEnviroX from "@/assets/logo-envirox.png";
+import logoEarthKind from "@/assets/logo-earth-kind.png";
 
 const partners = [
-  { name: "Emart", description: "Leading retail partner" },
-  { name: "Jsson", description: "Innovation partner" },
-  { name: "LGA", description: "Sustainability alliance" },
+  { name: "Eco Wrap Systems", description: "Sustainable packaging solutions", logo: logoEcoWrap },
+  { name: "EnviroX", description: "Green technology innovators", logo: logoEnviroX },
+  { name: "Earth Kind", description: "Eco-friendly materials partner", logo: logoEarthKind },
 ];
 
 const values = [
@@ -141,8 +144,8 @@ export default function About() {
               className="eco-shadow text-center hover:border-primary/50 transition-colors duration-300"
             >
               <CardContent className="pt-8 pb-6">
-                <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-8 w-8 text-muted-foreground" />
+                <div className="w-20 h-20 rounded-2xl bg-background flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                  <img src={partner.logo} alt={partner.name} className="w-full h-full object-contain" />
                 </div>
                 <h3 className="text-xl font-display font-bold">{partner.name}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{partner.description}</p>
