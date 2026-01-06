@@ -40,46 +40,64 @@ export default function Home() {
 
     setIsLoading(true);
 
-    // Simulate ML prediction (replace with actual API call when deployed)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    const materials = ["Recycled Cardboard", "Biodegradable Plastic", "Bamboo Fiber", "Mushroom Packaging", "Seaweed Film"];
-    const selectedMaterial = materials[Math.floor(Math.random() * materials.length)];
-    const co2Score = Math.round((100 - biodegradabilityScore[0] * 0.5 - recyclabilityPercent[0] * 0.3) * 10) / 10;
-    const costScore = Math.round((50 + parseFloat(tensileStrength) * 0.1 + parseFloat(weightCapacity) * 0.05) * 10) / 10;
-    const sustainabilityScore = Math.round((co2Score * 0.6 + costScore * 0.4) * 10) / 10;
-
-    const prediction: PredictionResult = {
-      material_name: selectedMaterial,
-      co2_emission_score: Math.min(100, Math.max(0, co2Score)),
-      cost_score: Math.min(100, Math.max(0, costScore)),
-      sustainability_score: Math.min(100, Math.max(0, sustainabilityScore)),
-    };
-
-    setResult(prediction);
-
-    // Save to database
-    if (user) {
-      const { error } = await supabase.from("predictions").insert({
-        user_id: user.id,
-        tensile_strength: parseFloat(tensileStrength),
-        weight_capacity: parseFloat(weightCapacity),
-        biodegradability_score: biodegradabilityScore[0],
-        recyclability_percent: recyclabilityPercent[0],
-        ...prediction,
+    try {
+      // Call the ML prediction edge function
+      const { data, error } = await supabase.functions.invoke("predict", {
+        body: {
+          tensile_strength: parseFloat(tensileStrength),
+          weight_capacity: parseFloat(weightCapacity),
+          biodegradability_score: biodegradabilityScore[0],
+          recyclability_percent: recyclabilityPercent[0],
+        },
       });
 
       if (error) {
-        console.error("Error saving prediction:", error);
+        throw new Error(error.message);
       }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const prediction: PredictionResult = {
+        material_name: data.material_name,
+        co2_emission_score: data.co2_emission_score,
+        cost_score: data.cost_score,
+        sustainability_score: data.sustainability_score,
+      };
+
+      setResult(prediction);
+
+      // Save to database
+      if (user) {
+        const { error: dbError } = await supabase.from("predictions").insert({
+          user_id: user.id,
+          tensile_strength: parseFloat(tensileStrength),
+          weight_capacity: parseFloat(weightCapacity),
+          biodegradability_score: biodegradabilityScore[0],
+          recyclability_percent: recyclabilityPercent[0],
+          ...prediction,
+        });
+
+        if (dbError) {
+          console.error("Error saving prediction:", dbError);
+        }
+      }
+
+      toast({
+        title: "Prediction complete!",
+        description: `Recommended material: ${prediction.material_name}`,
+      });
+    } catch (error) {
+      console.error("Prediction error:", error);
+      toast({
+        variant: "destructive",
+        title: "Prediction failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    toast({
-      title: "Prediction complete!",
-      description: `Recommended material: ${selectedMaterial}`,
-    });
-
-    setIsLoading(false);
   };
 
   const handleClear = () => {
