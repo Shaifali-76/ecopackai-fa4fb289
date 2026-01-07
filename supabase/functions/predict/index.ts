@@ -7,6 +7,17 @@ const corsHeaders = {
 
 const ML_API_URL = "https://material-prediction-api.onrender.com/predict";
 
+// Material mapping based on prediction index
+const MATERIALS = [
+  { name: "Recycled Cardboard", co2: 15, cost: 25, sustainability: 85 },
+  { name: "Biodegradable PLA", co2: 20, cost: 45, sustainability: 90 },
+  { name: "Mushroom Packaging", co2: 10, cost: 60, sustainability: 95 },
+  { name: "Recycled Paper", co2: 18, cost: 20, sustainability: 80 },
+  { name: "Cornstarch Foam", co2: 22, cost: 35, sustainability: 88 },
+  { name: "Seaweed Packaging", co2: 8, cost: 70, sustainability: 98 },
+  { name: "Bamboo Fiber", co2: 12, cost: 40, sustainability: 92 },
+];
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -41,13 +52,26 @@ serve(async (req) => {
     const prediction = await response.json();
     console.log("ML API response:", prediction);
 
-    // Map the response to our expected format
-    const result = {
-      material_name: prediction.Material_Name || prediction.material_name,
-      co2_emission_score: prediction.CO2_Emission_Score || prediction.co2_emission_score,
-      cost_score: prediction.Cost_Score || prediction.cost_score,
-      sustainability_score: prediction.Sustainability_Score || prediction.sustainability_score,
-    };
+    // Handle new API format: { prediction: number, status: "success" }
+    let result;
+    if (typeof prediction.prediction === 'number') {
+      const materialIndex = Math.abs(prediction.prediction) % MATERIALS.length;
+      const material = MATERIALS[materialIndex];
+      result = {
+        material_name: material.name,
+        co2_emission_score: material.co2,
+        cost_score: material.cost,
+        sustainability_score: material.sustainability,
+      };
+    } else {
+      // Fallback for old API format with full material details
+      result = {
+        material_name: prediction.Material_Name || prediction.material_name,
+        co2_emission_score: prediction.CO2_Emission_Score || prediction.co2_emission_score,
+        cost_score: prediction.Cost_Score || prediction.cost_score,
+        sustainability_score: prediction.Sustainability_Score || prediction.sustainability_score,
+      };
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
