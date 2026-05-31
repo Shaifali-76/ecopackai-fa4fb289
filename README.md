@@ -15,8 +15,6 @@ The packaging industry is one of the largest contributors to global plastic wast
 <li>Regulatory Compliance: A built-in engine that checks designs against global sustainability regulations (e.g., EU Green Deal, EPR).</li>
 <li>Supply Chain Integration: Optimizes packaging dimensions for logistics to reduce wasted space and transportation emissions.</li>
 
-<h2>Demo Link</h2>
-https://ecopackai.netlify.app
 <h2>Tech Stack</h2>
 <li>Frontend: React.js / Next.js</li>
 <li>Deployment: Netlify</li>
@@ -24,3 +22,5 @@ https://ecopackai.netlify.app
 <li>Backend: Node.js / FastAPI</li>
 <li>Database: PostgreSQL</li>
 
+<h2>Demo Link</h2>
+https://ecopackai.netlify.app
